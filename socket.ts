@@ -10,14 +10,18 @@ export function createWebSocket(
 	let socketUrl;
 	let store;
 	let subMessage;
+	let pingMessage;
+	let pongMessage;
 
 	if (burse === "bybit") {
 		socketUrl = "wss://stream.bybit.com/v5/public/spot";
 		store = candle.bybit;
 		subMessage = {
+			req_id: "reversesosa",
 			op: "subscribe",
 			args: ["publicTrade.BTCUSDT"],
 		};
+		pingMessage = JSON.stringify({ op: "ping" });
 	}
 	if (burse === "okx") {
 		socketUrl = "wss://stream.bybit.com/v5/public/spot";
@@ -31,13 +35,14 @@ export function createWebSocket(
 			{ type: "trade", codes: ["KRW-BTC"], isOnlyRealtime: true },
 			{ format: "SIMPLE" },
 		];
+		pingMessage = "PING";
 	}
 
 	const ws = new WebSocket(socketUrl);
 
-	/* const heartbeatInterval = setInterval(() => {
-		ws.send(JSON.stringify({ op: "ping" }));
-	}, 20000); */
+	const heartbeatInterval = setInterval(() => {
+		ws.send(pingMessage);
+	}, 20000);
 
 	let timeoutInterval;
 
@@ -60,7 +65,7 @@ export function createWebSocket(
 
 	ws.on("message", (data) => {
 		const message = JSON.parse(data.toString());
-		if (message.ret_msg === "pong") {
+		if (message.ret_msg === "pong" || message.status === "UP") {
 			console.log(message);
 			stopTimeout();
 			startTimeout();
