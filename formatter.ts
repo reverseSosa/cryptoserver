@@ -1,4 +1,4 @@
-interface order {
+/* interface order {
 	i: string;
 	T: number;
 	p: string;
@@ -13,7 +13,7 @@ interface message {
 	ts: number;
 	type: string;
 	data: Array<order>;
-}
+} */
 
 export interface formattedTick {
 	date: Date;
@@ -22,9 +22,9 @@ export interface formattedTick {
 }
 
 export const formatter = (
-	data: message,
+	data,
 	side: "Buy" | "Sell",
-	preset: "bybit" | "okx",
+	preset: "bybit" | "okx" | "upbit",
 ): formattedTick | null => {
 	if (preset === "bybit") {
 		const timestamp = data.ts;
@@ -42,7 +42,22 @@ export const formatter = (
 			};
 			return formattedTick;
 		}
+		return null;
+	} else if (preset === "upbit") {
+		const timestamp = data.tms;
+		const tickQ: number = data.tv;
+		const tradeSide = data.ab === "BID" ? "Buy" : "Sell";
 
+		if (tradeSide === side) {
+			const formattedTick = {
+				date: new Date(timestamp),
+				timestamp: timestamp,
+				q: tickQ,
+				side: tradeSide,
+				pair: data.cd,
+			};
+			return formattedTick;
+		}
 		return null;
 	} else console.log("preset doesnt exists");
 };

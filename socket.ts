@@ -3,21 +3,41 @@ import { WebSocket } from "ws";
 import { formatter } from "./formatter";
 import { candle } from ".";
 
-export function createWebSocket(candle: candle, burse: "bybit" | "okx") {
-	const ws = new WebSocket("wss://stream.bybit.com/v5/public/spot");
-
+export function createWebSocket(
+	candle: candle,
+	burse: "bybit" | "okx" | "upbit",
+) {
+	let socketUrl;
 	let store;
+	let subMessage;
 
 	if (burse === "bybit") {
+		socketUrl = "wss://stream.bybit.com/v5/public/spot";
 		store = candle.bybit;
+		subMessage = {
+			op: "subscribe",
+			args: ["publicTrade.BTCUSDT"],
+		};
 	}
 	if (burse === "okx") {
+		socketUrl = "wss://stream.bybit.com/v5/public/spot";
 		store = candle.okx;
 	}
+	if (burse === "upbit") {
+		socketUrl = "wss://api.upbit.com/websocket/v1";
+		store = candle.upbit;
+		subMessage = [
+			{ ticket: "reversesosa" },
+			{ type: "trade", codes: ["KRW-BTC"], isOnlyRealtime: true },
+			{ format: "SIMPLE" },
+		];
+	}
 
-	const heartbeatInterval = setInterval(() => {
+	const ws = new WebSocket(socketUrl);
+
+	/* const heartbeatInterval = setInterval(() => {
 		ws.send(JSON.stringify({ op: "ping" }));
-	}, 20000);
+	}, 20000); */
 
 	let timeoutInterval;
 
@@ -31,12 +51,7 @@ export function createWebSocket(candle: candle, burse: "bybit" | "okx") {
 	};
 
 	ws.on("open", () => {
-		ws.send(
-			JSON.stringify({
-				op: "subscribe",
-				args: ["publicTrade.BTCUSDT"],
-			}),
-		);
+		ws.send(JSON.stringify(subMessage));
 	});
 
 	const stopTimeout = () => {
@@ -81,7 +96,7 @@ export function createWebSocket(candle: candle, burse: "bybit" | "okx") {
 	});
 
 	ws.onclose = () => {
-		clearInterval(heartbeatInterval);
+		//clearInterval(heartbeatInterval);
 		stopTimeout();
 
 		setTimeout(() => {

@@ -12,14 +12,20 @@ export interface candle {
 		buys: Array<formattedTick>;
 		sells: Array<formattedTick>;
 	};
+	upbit: {
+		buys: Array<formattedTick>;
+		sells: Array<formattedTick>;
+	};
 }
 
 const currentCandle: candle = {
 	bybit: { buys: [], sells: [] },
 	okx: { buys: [], sells: [] },
+	upbit: { buys: [], sells: [] },
 };
 
 createWebSocket(currentCandle, "bybit");
+createWebSocket(currentCandle, "upbit");
 
 function createServerSocket() {
 	const wss = new WebSocket.Server({ port: 8080 });
