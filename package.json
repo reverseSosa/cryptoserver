@@ -1,0 +1,24 @@
+{
+  "name": "cryptoserver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "start": "nodemon --esm index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ccxt": "^4.0.21",
+    "nodemon": "^3.0.1",
+    "socket.io": "^4.7.1",
+    "socket.io-client": "^4.7.1",
+    "ts-node": "^10.9.1",
+    "ws": "^8.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.2",
+    "@types/ws": "^8.5.5"
+  }
+}
