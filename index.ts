@@ -24,6 +24,7 @@ const currentCandle: candle = {
 	upbit: { buys: [], sells: [] },
 };
 
+createWebSocket(currentCandle, "okx");
 createWebSocket(currentCandle, "bybit");
 createWebSocket(currentCandle, "upbit");
 

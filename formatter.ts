@@ -59,5 +59,26 @@ export const formatter = (
 			return formattedTick;
 		}
 		return null;
+	} else if (preset === "okx") {
+		if (data.data) {
+			const timestamp = Number(data.data[0]?.ts);
+			const curSide = side === "Buy" ? "buy" : "sell";
+			const trades = data.data?.filter((trade) => trade.side === curSide);
+			if (trades?.length > 0) {
+				const tickQ: number = trades
+					.map((trade) => Number(trade.sz))
+					.reduce((prev, curr) => prev + curr);
+				const formattedTick = {
+					date: new Date(timestamp),
+					timestamp: timestamp,
+					q: tickQ,
+					side: side,
+					pair: data.data[0]?.instId,
+				};
+				return formattedTick;
+			}
+		}
+
+		return null;
 	} else console.log("preset doesnt exists");
 };

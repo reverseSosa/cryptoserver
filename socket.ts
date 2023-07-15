@@ -24,8 +24,17 @@ export function createWebSocket(
 		pingMessage = JSON.stringify({ op: "ping" });
 	}
 	if (burse === "okx") {
-		socketUrl = "wss://stream.bybit.com/v5/public/spot";
+		socketUrl = "wss://wsaws.okx.com:8443/ws/v5/public";
 		store = candle.okx;
+		subMessage = {
+			op: "subscribe",
+			args: [
+				{
+					channel: "trades",
+					instId: "BTC-USDT",
+				},
+			],
+		};
 	}
 	if (burse === "upbit") {
 		socketUrl = "wss://api.upbit.com/websocket/v1";
@@ -40,9 +49,9 @@ export function createWebSocket(
 
 	const ws = new WebSocket(socketUrl);
 
-	const heartbeatInterval = setInterval(() => {
+	/* const heartbeatInterval = setInterval(() => {
 		ws.send(pingMessage);
-	}, 20000);
+	}, 20000); */
 
 	let timeoutInterval;
 
