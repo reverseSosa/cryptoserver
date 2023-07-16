@@ -24,7 +24,7 @@ export interface formattedTick {
 export const formatter = (
 	data,
 	side: "Buy" | "Sell",
-	preset: "bybit" | "okx" | "upbit",
+	preset: "bybit" | "okx" | "upbit" | "huobi",
 ): formattedTick | null => {
 	if (preset === "bybit") {
 		const timestamp = data.ts;
@@ -79,6 +79,27 @@ export const formatter = (
 			}
 		}
 
+		return null;
+	} else if (preset === "huobi") {
+		const timestamp = data.tick?.ts;
+		const curSide = side === "Buy" ? "buy" : "sell";
+		const trades = data.tick?.data?.filter(
+			(trade) => trade.direction === curSide,
+		);
+
+		if (trades?.length > 0) {
+			const tickQ: number = trades
+				.map((trade) => trade.amount)
+				.reduce((prev, curr) => prev + curr);
+			const formattedTick = {
+				date: new Date(timestamp),
+				timestamp: timestamp,
+				q: tickQ,
+				side: side,
+				pair: data.ch,
+			};
+			return formattedTick;
+		}
 		return null;
 	} else console.log("preset doesnt exists");
 };

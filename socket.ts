@@ -2,16 +2,19 @@ import { WebSocket } from "ws";
 
 import { formatter } from "./formatter";
 import { candle } from ".";
+import { InputType, gunzipSync, unzip } from "zlib";
 
 export function createWebSocket(
 	candle: candle,
-	burse: "bybit" | "okx" | "upbit",
+	burse: "bybit" | "okx" | "upbit" | "huobi",
 ) {
 	let socketUrl;
 	let store;
 	let subMessage;
 	let pingMessage;
-	let pongMessage;
+	let messageHandler = (data) => {
+		return JSON.parse(data.toString());
+	};
 
 	if (burse === "bybit") {
 		socketUrl = "wss://stream.bybit.com/v5/public/spot";
@@ -23,6 +26,7 @@ export function createWebSocket(
 		};
 		pingMessage = JSON.stringify({ op: "ping" });
 	}
+
 	if (burse === "okx") {
 		socketUrl = "wss://wsaws.okx.com:8443/ws/v5/public";
 		store = candle.okx;
@@ -36,6 +40,7 @@ export function createWebSocket(
 			],
 		};
 	}
+
 	if (burse === "upbit") {
 		socketUrl = "wss://api.upbit.com/websocket/v1";
 		store = candle.upbit;
@@ -45,6 +50,21 @@ export function createWebSocket(
 			{ format: "SIMPLE" },
 		];
 		pingMessage = "PING";
+	}
+
+	if (burse === "huobi") {
+		socketUrl = "wss://api-aws.huobi.pro/ws";
+		store = candle.huobi;
+		subMessage = {
+			sub: "market.btcusdt.trade.detail",
+			id: "reversesosa",
+		};
+		messageHandler = (data) => {
+			const compressedData = new Uint8Array(data);
+			const uncompressedData = gunzipSync(compressedData);
+			const returnData = JSON.parse(uncompressedData.toString());
+			return returnData;
+		};
 	}
 
 	const ws = new WebSocket(socketUrl);
@@ -72,9 +92,13 @@ export function createWebSocket(
 		clearInterval(timeoutInterval);
 	};
 
-	ws.on("message", (data) => {
-		const message = JSON.parse(data.toString());
-		if (message.ret_msg === "pong" || message.status === "UP") {
+	ws.on("message", (data: InputType) => {
+		const message = messageHandler(data);
+		if (
+			message?.ret_msg === "pong" ||
+			message?.status === "UP" ||
+			message?.ping
+		) {
 			console.log(message);
 			stopTimeout();
 			startTimeout();
