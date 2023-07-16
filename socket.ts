@@ -39,6 +39,14 @@ export function createWebSocket(
 				},
 			],
 		};
+		pingMessage = "ping";
+		messageHandler = (data) => {
+			if (data.toString() === "pong") {
+				return { pong: "pong" };
+			} else {
+				return JSON.parse(data.toString());
+			}
+		};
 	}
 
 	if (burse === "upbit") {
@@ -69,9 +77,11 @@ export function createWebSocket(
 
 	const ws = new WebSocket(socketUrl);
 
-	/* const heartbeatInterval = setInterval(() => {
-		ws.send(pingMessage);
-	}, 20000); */
+	const heartbeatInterval = setInterval(() => {
+		if (burse !== "huobi") {
+			ws.send(pingMessage);
+		}
+	}, 30000);
 
 	let timeoutInterval;
 
@@ -94,12 +104,17 @@ export function createWebSocket(
 
 	ws.on("message", (data: InputType) => {
 		const message = messageHandler(data);
+
 		if (
 			message?.ret_msg === "pong" ||
 			message?.status === "UP" ||
-			message?.ping
+			message?.ping ||
+			message?.pong
 		) {
 			console.log(message);
+			if (burse === "huobi") {
+				ws.send(JSON.stringify({ pong: message.ping }));
+			}
 			stopTimeout();
 			startTimeout();
 		} else {
