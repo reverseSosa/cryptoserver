@@ -2,11 +2,11 @@ import { WebSocket } from "ws";
 
 import { formatter } from "./formatter";
 import { candle } from ".";
-import { InputType, gunzipSync, unzip } from "zlib";
+import { InputType, gunzipSync } from "zlib";
 
 export function createWebSocket(
 	candle: candle,
-	burse: "bybit" | "okx" | "upbit" | "huobi",
+	burse: "bybit" | "okx" | "upbit" | "huobi" | "bitmex",
 ) {
 	let socketUrl;
 	let store;
@@ -74,6 +74,18 @@ export function createWebSocket(
 			return returnData;
 		};
 	}
+	if (burse === "bitmex") {
+		socketUrl = "wss://ws.bitmex.com/realtime?subscribe=trade:XBTUSD";
+		store = candle.bitmex;
+		pingMessage = "ping";
+		messageHandler = (data) => {
+			if (data.toString() === "pong") {
+				return { pong: "pong" };
+			} else {
+				return JSON.parse(data.toString());
+			}
+		};
+	}
 
 	const ws = new WebSocket(socketUrl);
 
@@ -104,6 +116,7 @@ export function createWebSocket(
 
 	ws.on("message", (data: InputType) => {
 		const message = messageHandler(data);
+		console.log(message);
 
 		if (
 			message?.ret_msg === "pong" ||
@@ -147,6 +160,15 @@ export function createWebSocket(
 			}
 		}
 	});
+
+	ws.onerror = () => {
+		//clearInterval(heartbeatInterval);
+		stopTimeout();
+
+		setTimeout(() => {
+			createWebSocket(candle, burse);
+		}, 5000);
+	};
 
 	ws.onclose = () => {
 		//clearInterval(heartbeatInterval);

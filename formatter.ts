@@ -24,11 +24,12 @@ export interface formattedTick {
 export const formatter = (
 	data,
 	side: "Buy" | "Sell",
-	preset: "bybit" | "okx" | "upbit" | "huobi",
+	preset: "bybit" | "okx" | "upbit" | "huobi" | "bitmex",
 ): formattedTick | null => {
 	if (preset === "bybit") {
 		const timestamp = data.ts;
 		const trades = data.data?.filter((trade) => trade.S === side);
+
 		if (trades?.length > 0) {
 			const tickQ: number = trades
 				.map((trade) => Number(trade.v))
@@ -64,6 +65,7 @@ export const formatter = (
 			const timestamp = Number(data.data[0]?.ts);
 			const curSide = side === "Buy" ? "buy" : "sell";
 			const trades = data.data?.filter((trade) => trade.side === curSide);
+
 			if (trades?.length > 0) {
 				const tickQ: number = trades
 					.map((trade) => Number(trade.sz))
@@ -97,6 +99,24 @@ export const formatter = (
 				q: tickQ,
 				side: side,
 				pair: data.ch,
+			};
+			return formattedTick;
+		}
+		return null;
+	} else if (preset === "bitmex") {
+		const timestamp = Date.parse(data.data[0]?.timestamp);
+		const trades = data.data.filter((trade) => trade.side === side);
+
+		if (trades.length > 0 && data.action === "insert") {
+			const tickQ: number = trades
+				.map((trade) => trade.homeNotional)
+				.reduce((prev, curr) => prev + curr);
+			const formattedTick = {
+				date: new Date(timestamp),
+				timestamp: timestamp,
+				q: tickQ,
+				side: side,
+				pair: data.data[0]?.symbol,
 			};
 			return formattedTick;
 		}
