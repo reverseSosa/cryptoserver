@@ -6,7 +6,7 @@ import { InputType, gunzipSync } from "zlib";
 
 export function createWebSocket(
 	candle: candle,
-	burse: "bybit" | "okx" | "upbit" | "huobi" | "bitmex",
+	burse: "bybit" | "okx" | "upbit" | "huobi" | "bitmex" | "coinbase",
 ) {
 	let socketUrl;
 	let store;
@@ -74,6 +74,7 @@ export function createWebSocket(
 			return returnData;
 		};
 	}
+
 	if (burse === "bitmex") {
 		socketUrl = "wss://ws.bitmex.com/realtime?subscribe=trade:XBTUSD";
 		store = candle.bitmex;
@@ -84,6 +85,16 @@ export function createWebSocket(
 			} else {
 				return JSON.parse(data.toString());
 			}
+		};
+	}
+
+	if (burse === "coinbase") {
+		socketUrl = "wss://ws-feed.exchange.coinbase.com";
+		store = candle.coinbase;
+		subMessage = {
+			type: "subscribe",
+			product_ids: ["BTC-USD"],
+			channels: ["full"],
 		};
 	}
 
@@ -116,8 +127,8 @@ export function createWebSocket(
 
 	ws.on("message", (data: InputType) => {
 		const message = messageHandler(data);
-		console.log(message);
-
+		stopTimeout();
+		startTimeout();
 		if (
 			message?.ret_msg === "pong" ||
 			message?.status === "UP" ||
@@ -132,7 +143,7 @@ export function createWebSocket(
 			startTimeout();
 		} else {
 			try {
-				console.log("-----");
+				//console.log("-----");
 
 				const formattedBuys = formatter(message, "Buy", burse);
 

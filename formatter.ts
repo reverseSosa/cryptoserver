@@ -24,7 +24,7 @@ export interface formattedTick {
 export const formatter = (
 	data,
 	side: "Buy" | "Sell",
-	preset: "bybit" | "okx" | "upbit" | "huobi" | "bitmex",
+	preset: "bybit" | "okx" | "upbit" | "huobi" | "bitmex" | "coinbase",
 ): formattedTick | null => {
 	if (preset === "bybit") {
 		const timestamp = data.ts;
@@ -104,22 +104,41 @@ export const formatter = (
 		}
 		return null;
 	} else if (preset === "bitmex") {
-		const timestamp = Date.parse(data.data[0]?.timestamp);
-		const trades = data.data.filter((trade) => trade.side === side);
+		if (data.data) {
+			const timestamp = Date.parse(data.data[0].timestamp);
+			const trades = data.data.filter((trade) => trade.side === side);
 
-		if (trades.length > 0 && data.action === "insert") {
-			const tickQ: number = trades
-				.map((trade) => trade.homeNotional)
-				.reduce((prev, curr) => prev + curr);
+			if (trades.length > 0 && data.action === "insert") {
+				const tickQ: number = trades
+					.map((trade) => trade.homeNotional)
+					.reduce((prev, curr) => prev + curr);
+				const formattedTick = {
+					date: new Date(timestamp),
+					timestamp: timestamp,
+					q: tickQ,
+					side: side,
+					pair: data.data[0]?.symbol,
+				};
+				return formattedTick;
+			}
+		}
+
+		return null;
+	} else if (preset === "coinbase") {
+		const curSide = side === "Buy" ? "sell" : "buy";
+		if (data.type === "match" && data.side === curSide) {
+			const timestamp = Date.parse(data.time);
+			const tickQ = Number(data.size);
 			const formattedTick = {
 				date: new Date(timestamp),
 				timestamp: timestamp,
 				q: tickQ,
 				side: side,
-				pair: data.data[0]?.symbol,
+				pair: data.product_id,
 			};
 			return formattedTick;
 		}
+
 		return null;
 	} else console.log("preset doesnt exists");
 };

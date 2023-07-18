@@ -21,6 +21,7 @@ export interface candle {
 		sells: Array<formattedTick>;
 	};
 	bitmex: { buys: Array<formattedTick>; sells: Array<formattedTick> };
+	coinbase: { buys: Array<formattedTick>; sells: Array<formattedTick> };
 }
 
 const currentCandle: candle = {
@@ -29,6 +30,7 @@ const currentCandle: candle = {
 	upbit: { buys: [], sells: [] },
 	huobi: { buys: [], sells: [] },
 	bitmex: { buys: [], sells: [] },
+	coinbase: { buys: [], sells: [] },
 };
 
 createWebSocket(currentCandle, "bitmex");
@@ -36,6 +38,7 @@ createWebSocket(currentCandle, "okx");
 createWebSocket(currentCandle, "bybit");
 createWebSocket(currentCandle, "upbit");
 createWebSocket(currentCandle, "huobi");
+createWebSocket(currentCandle, "coinbase");
 
 function createServerSocket() {
 	const wss = new WebSocket.Server({ port: 8080 });
