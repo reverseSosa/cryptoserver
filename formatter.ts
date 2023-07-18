@@ -24,7 +24,14 @@ export interface formattedTick {
 export const formatter = (
 	data,
 	side: "Buy" | "Sell",
-	preset: "bybit" | "okx" | "upbit" | "huobi" | "bitmex" | "coinbase",
+	preset:
+		| "bybit"
+		| "okx"
+		| "upbit"
+		| "huobi"
+		| "bitmex"
+		| "coinbase"
+		| "bitforex",
 ): formattedTick | null => {
 	if (preset === "bybit") {
 		const timestamp = data.ts;
@@ -139,6 +146,26 @@ export const formatter = (
 			return formattedTick;
 		}
 
+		return null;
+	} else if (preset === "bitforex") {
+		if (data.data) {
+			const timestamp = data.data[0].time;
+			const curSide = side === "Buy" ? 1 : 2;
+			const trades = data.data.filter((trade) => trade.direction === curSide);
+			if (trades.length > 0) {
+				const tickQ: number = trades
+					.map((trade) => Number(trade.amount))
+					.reduce((prev, curr) => prev + curr);
+				const formattedTick = {
+					date: new Date(timestamp),
+					timestamp: timestamp,
+					q: tickQ,
+					side: side,
+					pair: data.param?.businessType,
+				};
+				return formattedTick;
+			}
+		}
 		return null;
 	} else console.log("preset doesnt exists");
 };

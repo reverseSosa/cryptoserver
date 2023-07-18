@@ -6,7 +6,14 @@ import { InputType, gunzipSync } from "zlib";
 
 export function createWebSocket(
 	candle: candle,
-	burse: "bybit" | "okx" | "upbit" | "huobi" | "bitmex" | "coinbase",
+	burse:
+		| "bybit"
+		| "okx"
+		| "upbit"
+		| "huobi"
+		| "bitmex"
+		| "coinbase"
+		| "bitforex",
 ) {
 	let socketUrl;
 	let store;
@@ -22,7 +29,7 @@ export function createWebSocket(
 		subMessage = {
 			req_id: "reversesosa",
 			op: "subscribe",
-			args: ["publicTrade.BTCUSDT"],
+			args: ["publicTrade.BTCUSDT", "publicTrade.BTCUSDC"],
 		};
 		pingMessage = JSON.stringify({ op: "ping" });
 	}
@@ -98,6 +105,37 @@ export function createWebSocket(
 		};
 	}
 
+	if (burse === "bitforex") {
+		socketUrl = "wss://www.bitforex.com/mkapi/coinGroup1/ws";
+		store = candle.bitforex;
+		subMessage = [
+			{
+				type: "subHq",
+				event: "trade",
+				param: {
+					businessType: "coin-usdt-btc",
+					size: 1,
+				},
+			},
+			{
+				type: "subHq",
+				event: "trade",
+				param: {
+					businessType: "coin-usdc-btc",
+					size: 1,
+				},
+			},
+		];
+		pingMessage = "ping_p";
+		messageHandler = (data) => {
+			if (data.toString() === "pong_p") {
+				return { pong: "pong" };
+			} else {
+				return JSON.parse(data.toString());
+			}
+		};
+	}
+
 	const ws = new WebSocket(socketUrl);
 
 	const heartbeatInterval = setInterval(() => {
@@ -127,6 +165,7 @@ export function createWebSocket(
 
 	ws.on("message", (data: InputType) => {
 		const message = messageHandler(data);
+		console.log(message);
 		stopTimeout();
 		startTimeout();
 		if (
