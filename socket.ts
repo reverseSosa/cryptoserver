@@ -117,14 +117,6 @@ export function createWebSocket(
 					size: 1,
 				},
 			},
-			{
-				type: "subHq",
-				event: "trade",
-				param: {
-					businessType: "coin-usdc-btc",
-					size: 1,
-				},
-			},
 		];
 		pingMessage = "ping_p";
 		messageHandler = (data) => {
