@@ -13,7 +13,8 @@ export function createWebSocket(
 		| "huobi"
 		| "bitmex"
 		| "coinbase"
-		| "bitforex",
+		| "bitforex"
+		| "binance",
 ) {
 	let socketUrl;
 	let store;
@@ -126,6 +127,11 @@ export function createWebSocket(
 				return JSON.parse(data.toString());
 			}
 		};
+	}
+
+	if (burse === "binance") {
+		socketUrl = "wss://stream.binance.com:9443/ws/btcusdt@trade";
+		store = candle.binance;
 	}
 
 	const ws = new WebSocket(socketUrl);

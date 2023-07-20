@@ -1,20 +1,3 @@
-/* interface order {
-	i: string;
-	T: number;
-	p: string;
-	v: string;
-	S: string;
-	s: string;
-	BT: boolean;
-}
-
-interface message {
-	topic: string;
-	ts: number;
-	type: string;
-	data: Array<order>;
-} */
-
 export interface formattedTick {
 	date: Date;
 	timestamp: number;
@@ -31,7 +14,8 @@ export const formatter = (
 		| "huobi"
 		| "bitmex"
 		| "coinbase"
-		| "bitforex",
+		| "bitforex"
+		| "binance",
 ): formattedTick | null => {
 	if (preset === "bybit") {
 		const timestamp = data.ts;
@@ -73,9 +57,7 @@ export const formatter = (
 		if (data.data) {
 			const timestamp = Number(data.data[0]?.ts);
 			const curSide = side === "Buy" ? "buy" : "sell";
-			const trades = data.data?.filter(
-				(trade) => trade.side === curSide && trade.sz > 0.01,
-			);
+			const trades = data.data?.filter((trade) => trade.side === curSide);
 
 			if (trades?.length > 0) {
 				const tickQ: number = trades
@@ -174,6 +156,24 @@ export const formatter = (
 				return formattedTick;
 			}
 		}
+		return null;
+	} else if (preset === "binance") {
+		const timestamp = data.T;
+		const curSide = data.m ? "Sell" : "Buy";
+		const tickQ = Number(data.q);
+
+		if (side === curSide) {
+			const formattedTick = {
+				date: new Date(timestamp),
+				timestamp: timestamp,
+				q: tickQ,
+				side: side,
+				pair: data.s,
+			};
+
+			return formattedTick;
+		}
+
 		return null;
 	} else console.log("preset doesnt exists");
 };
