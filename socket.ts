@@ -130,14 +130,22 @@ export function createWebSocket(
 	}
 
 	if (burse === "binance") {
-		socketUrl = "wss://stream.binance.com:9443/ws/btcusdt@trade";
+		socketUrl = "wss://stream.binance.com:9443/ws";
 		store = candle.binance;
+		subMessage = {
+			method: "SUBSCRIBE",
+			params: ["btcusdt@trade", "btctusd@trade"],
+			id: 229,
+		};
+		messageHandler = (data) => {
+			return JSON.parse(data);
+		};
 	}
 
 	const ws = new WebSocket(socketUrl);
 
 	const heartbeatInterval = setInterval(() => {
-		if (burse !== "huobi") {
+		if (burse !== "huobi" && burse !== "binance") {
 			ws.send(pingMessage);
 		}
 	}, 30000);
@@ -161,7 +169,7 @@ export function createWebSocket(
 		clearInterval(timeoutInterval);
 	};
 
-	ws.on("message", (data: InputType) => {
+	ws.on("message", (data) => {
 		const message = messageHandler(data);
 		console.log(message);
 		stopTimeout();
@@ -209,14 +217,14 @@ export function createWebSocket(
 		}
 	});
 
-	ws.onerror = () => {
+	ws.on("error", () => {
 		//clearInterval(heartbeatInterval);
 		stopTimeout();
 
 		setTimeout(() => {
 			createWebSocket(candle, burse);
 		}, 5000);
-	};
+	});
 
 	ws.onclose = () => {
 		//clearInterval(heartbeatInterval);
