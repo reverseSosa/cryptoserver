@@ -1,8 +1,9 @@
-import { WebSocket } from "ws";
+import ReconnectingWebSocket from "reconnecting-websocket";
+import { gunzipSync } from "zlib";
+import WS from "ws";
 
 import { formatter } from "./formatter";
 import { candle } from ".";
-import { InputType, gunzipSync } from "zlib";
 
 export function createWebSocket(
 	candle: candle,
@@ -16,16 +17,14 @@ export function createWebSocket(
 		| "bitforex"
 		| "binance",
 ) {
-	let socketUrl;
 	let store;
 	let subMessage;
 	let pingMessage;
 	let messageHandler = (data) => {
-		return JSON.parse(data.toString());
+		return JSON.parse(data.data.toString());
 	};
 
 	if (burse === "bybit") {
-		socketUrl = "wss://stream.bybit.com/v5/public/spot";
 		store = candle.bybit;
 		subMessage = {
 			req_id: "reversesosa",
@@ -36,7 +35,6 @@ export function createWebSocket(
 	}
 
 	if (burse === "okx") {
-		socketUrl = "wss://wsaws.okx.com:8443/ws/v5/public";
 		store = candle.okx;
 		subMessage = {
 			op: "subscribe",
@@ -49,16 +47,15 @@ export function createWebSocket(
 		};
 		pingMessage = "ping";
 		messageHandler = (data) => {
-			if (data.toString() === "pong") {
+			if (data.data.toString() === "pong") {
 				return { pong: "pong" };
 			} else {
-				return JSON.parse(data.toString());
+				return JSON.parse(data.data.toString());
 			}
 		};
 	}
 
 	if (burse === "upbit") {
-		socketUrl = "wss://api.upbit.com/websocket/v1";
 		store = candle.upbit;
 		subMessage = [
 			{ ticket: "reversesosa" },
@@ -69,14 +66,13 @@ export function createWebSocket(
 	}
 
 	if (burse === "huobi") {
-		socketUrl = "wss://api-aws.huobi.pro/ws";
 		store = candle.huobi;
 		subMessage = {
 			sub: "market.btcusdt.trade.detail",
 			id: "reversesosa",
 		};
 		messageHandler = (data) => {
-			const compressedData = new Uint8Array(data);
+			const compressedData = new Uint8Array(data.data);
 			const uncompressedData = gunzipSync(compressedData);
 			const returnData = JSON.parse(uncompressedData.toString());
 			return returnData;
@@ -84,20 +80,18 @@ export function createWebSocket(
 	}
 
 	if (burse === "bitmex") {
-		socketUrl = "wss://ws.bitmex.com/realtime?subscribe=trade:XBTUSD";
 		store = candle.bitmex;
 		pingMessage = "ping";
 		messageHandler = (data) => {
-			if (data.toString() === "pong") {
+			if (data.data.toString() === "pong") {
 				return { pong: "pong" };
 			} else {
-				return JSON.parse(data.toString());
+				return JSON.parse(data.data.toString());
 			}
 		};
 	}
 
 	if (burse === "coinbase") {
-		socketUrl = "wss://ws-feed.exchange.coinbase.com";
 		store = candle.coinbase;
 		subMessage = {
 			type: "subscribe",
@@ -107,7 +101,6 @@ export function createWebSocket(
 	}
 
 	if (burse === "bitforex") {
-		socketUrl = "wss://www.bitforex.com/mkapi/coinGroup1/ws";
 		store = candle.bitforex;
 		subMessage = [
 			{
@@ -121,28 +114,51 @@ export function createWebSocket(
 		];
 		pingMessage = "ping_p";
 		messageHandler = (data) => {
-			if (data.toString() === "pong_p") {
+			if (data.data.toString() === "pong_p") {
 				return { pong: "pong" };
 			} else {
-				return JSON.parse(data.toString());
+				return JSON.parse(data.data.toString());
 			}
 		};
 	}
 
 	if (burse === "binance") {
-		socketUrl = "wss://stream.binance.com:9443/ws";
 		store = candle.binance;
 		subMessage = {
 			method: "SUBSCRIBE",
-			params: ["btcusdt@trade", "btctusd@trade"],
+			params: ["btctusd@trade", "btcusdt@trade"],
 			id: 229,
 		};
 		messageHandler = (data) => {
-			return JSON.parse(data);
+			try {
+				const result = JSON.parse(data.data);
+				return result;
+			} catch (error) {
+				console.log(error);
+			}
 		};
 	}
 
-	const ws = new WebSocket(socketUrl);
+	const urlProvider = (burse: string): string => {
+		const urlList = {
+			binance: "wss://stream.binance.com:9443/ws",
+			bitmex: "wss://ws.bitmex.com/realtime?subscribe=trade:XBTUSD",
+			coinbase: "wss://ws-feed.exchange.coinbase.com",
+			bybit: "wss://stream.bybit.com/v5/public/spot",
+			okx: "wss://wsaws.okx.com:8443/ws/v5/public",
+			huobi: "wss://api-aws.huobi.pro/ws",
+			upbit: "wss://api.upbit.com/websocket/v1",
+		};
+		return urlList[burse];
+	};
+
+	const options = {
+		WebSocket: WS,
+		connectionTimeout: 10000,
+		maxRetries: 50,
+	};
+
+	const ws = new ReconnectingWebSocket(urlProvider(burse), [], options);
 
 	const heartbeatInterval = setInterval(() => {
 		if (burse !== "huobi" && burse !== "binance") {
@@ -161,7 +177,7 @@ export function createWebSocket(
 		}, 60000);
 	};
 
-	ws.on("open", () => {
+	ws.addEventListener("open", () => {
 		ws.send(JSON.stringify(subMessage));
 	});
 
@@ -169,9 +185,8 @@ export function createWebSocket(
 		clearInterval(timeoutInterval);
 	};
 
-	ws.on("message", (data) => {
+	ws.addEventListener("message", (data) => {
 		const message = messageHandler(data);
-		console.log(message);
 		stopTimeout();
 		startTimeout();
 		if (
@@ -188,8 +203,6 @@ export function createWebSocket(
 			startTimeout();
 		} else {
 			try {
-				//console.log("-----");
-
 				const formattedBuys = formatter(message, "Buy", burse);
 
 				if (formattedBuys) {
@@ -217,21 +230,17 @@ export function createWebSocket(
 		}
 	});
 
-	ws.on("error", () => {
-		//clearInterval(heartbeatInterval);
+	ws.addEventListener("error", () => {
+		clearInterval(heartbeatInterval);
+		stopTimeout();
+	});
+
+	ws.addEventListener("close", () => {
+		clearInterval(heartbeatInterval);
 		stopTimeout();
 
 		setTimeout(() => {
 			createWebSocket(candle, burse);
 		}, 5000);
 	});
-
-	ws.onclose = () => {
-		//clearInterval(heartbeatInterval);
-		stopTimeout();
-
-		setTimeout(() => {
-			createWebSocket(candle, burse);
-		}, 5000);
-	};
 }

@@ -39,14 +39,12 @@ const currentCandle: candle = {
 
 //createWebSocket(currentCandle, "bitmex");
 
-/* createWebSocket(currentCandle, "okx");
-createWebSocket(currentCandle, "bybit");
-createWebSocket(currentCandle, "upbit");
-createWebSocket(currentCandle, "huobi");
-createWebSocket(currentCandle, "coinbase");
-createWebSocket(currentCandle, "bitforex"); */
-
 createWebSocket(currentCandle, "binance");
+createWebSocket(currentCandle, "coinbase");
+createWebSocket(currentCandle, "bybit");
+createWebSocket(currentCandle, "okx");
+createWebSocket(currentCandle, "huobi");
+createWebSocket(currentCandle, "upbit");
 
 function createServerSocket() {
 	const wss = new WebSocket.Server({ port: 8080 });
