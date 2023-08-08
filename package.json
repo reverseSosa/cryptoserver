@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "start": "nodemon --esm index.ts"
+    "start": "nodemon --esm --max-old-space-size=2048 index.ts"
   },
   "keywords": [],
   "author": "",
