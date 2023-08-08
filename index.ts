@@ -2,6 +2,7 @@ import { WebSocket } from "ws";
 
 import { formattedTick } from "./formatter";
 import { createWebSocket } from "./socket";
+import { createCandleSocket } from "./candleSocket";
 
 export interface candle {
 	bybit: {
@@ -22,8 +23,15 @@ export interface candle {
 	};
 	bitmex: { buys: Array<formattedTick>; sells: Array<formattedTick> };
 	coinbase: { buys: Array<formattedTick>; sells: Array<formattedTick> };
-	bitforex: { buys: Array<formattedTick>; sells: Array<formattedTick> };
 	binance: { buys: Array<formattedTick>; sells: Array<formattedTick> };
+	futures: { buys: Array<formattedTick>; sells: Array<formattedTick> };
+	candleStatus: {
+		open: number;
+		close: number;
+		high: number;
+		low: number;
+	};
+	signal: boolean;
 }
 
 const currentCandle: candle = {
@@ -33,18 +41,42 @@ const currentCandle: candle = {
 	huobi: { buys: [], sells: [] },
 	bitmex: { buys: [], sells: [] },
 	coinbase: { buys: [], sells: [] },
-	bitforex: { buys: [], sells: [] },
 	binance: { buys: [], sells: [] },
+	futures: { buys: [], sells: [] },
+	candleStatus: {
+		open: 0,
+		close: 0,
+		high: 0,
+		low: 0,
+	},
+	get signal() {
+		const short = this.candleStatus.open > this.candleStatus.close;
+		const body = this.candleStatus.open - this.candleStatus.close;
+		const bottomWick = this.candleStatus.open - this.candleStatus.low;
+		const currentSecond = new Date().getSeconds();
+		const wick = bottomWick / body >= 3;
+		const sum = this.futures?.sells
+			?.map((trade) => trade.q)
+			.reduce((prev, curr) => prev + curr);
+		if (short && wick && currentSecond >= 50 && sum >= 300) {
+			return true;
+		}
+		return false;
+	},
 };
 
 //createWebSocket(currentCandle, "bitmex");
 
-createWebSocket(currentCandle, "binance");
+/* createWebSocket(currentCandle, "binance");
 createWebSocket(currentCandle, "coinbase");
 createWebSocket(currentCandle, "bybit");
 createWebSocket(currentCandle, "okx");
 createWebSocket(currentCandle, "huobi");
-createWebSocket(currentCandle, "upbit");
+createWebSocket(currentCandle, "upbit"); */
+
+createWebSocket(currentCandle, "futures");
+
+createCandleSocket(currentCandle);
 
 function createServerSocket() {
 	const wss = new WebSocket.Server({ port: 8080 });

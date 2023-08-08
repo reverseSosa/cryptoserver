@@ -14,7 +14,7 @@ export const formatter = (
 		| "huobi"
 		| "bitmex"
 		| "coinbase"
-		| "bitforex"
+		| "futures"
 		| "binance",
 ): formattedTick | null => {
 	if (preset === "bybit") {
@@ -135,27 +135,23 @@ export const formatter = (
 		}
 
 		return null;
-	} else if (preset === "bitforex") {
-		if (data.data) {
-			const timestamp = data.data[0].time;
-			const curSide = side === "Buy" ? 1 : 2;
-			const trades = data.data.filter(
-				(trade) => trade.direction === curSide && trade.amount > 0.1,
-			);
-			if (trades.length > 0) {
-				const tickQ: number = trades
-					.map((trade) => Number(trade.amount))
-					.reduce((prev, curr) => prev + curr);
-				const formattedTick = {
-					date: new Date(timestamp),
-					timestamp: timestamp,
-					q: tickQ,
-					side: side,
-					pair: data.param?.businessType,
-				};
-				return formattedTick;
-			}
+	} else if (preset === "futures") {
+		const timestamp = data.T;
+		const curSide = data.m ? "Sell" : "Buy";
+		const tickQ = Number(data.q);
+
+		if (side === curSide) {
+			const formattedTick = {
+				date: new Date(timestamp),
+				timestamp: timestamp,
+				q: tickQ,
+				side: side,
+				pair: data.s,
+			};
+
+			return formattedTick;
 		}
+
 		return null;
 	} else if (preset === "binance") {
 		const timestamp = data.T;
