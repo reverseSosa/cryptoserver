@@ -67,12 +67,12 @@ const currentCandle: candle = {
 
 //createWebSocket(currentCandle, "bitmex");
 
-createWebSocket(currentCandle, "binance");
+/* createWebSocket(currentCandle, "binance");
 createWebSocket(currentCandle, "coinbase");
 createWebSocket(currentCandle, "bybit");
 createWebSocket(currentCandle, "okx");
 createWebSocket(currentCandle, "huobi");
-createWebSocket(currentCandle, "upbit");
+createWebSocket(currentCandle, "upbit"); */
 
 createWebSocket(currentCandle, "futures");
 
