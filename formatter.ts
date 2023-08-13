@@ -140,7 +140,7 @@ export const formatter = (
 		const curSide = data.m ? "Sell" : "Buy";
 		const tickQ = Number(data.q);
 
-		if (side === curSide) {
+		if (side === curSide && tickQ > 0.1) {
 			const formattedTick = {
 				date: new Date(timestamp),
 				timestamp: timestamp,
