@@ -55,24 +55,19 @@ const currentCandle: candle = {
 		const bottomWick = this.candleStatus.open - this.candleStatus.low;
 		const currentSecond = new Date().getSeconds();
 		const wick = bottomWick / body >= 3;
-		const sum = this.futures?.sells
+		let sum
+		if (this.futures.sells.length > 0) {
+			sum = this.futures?.sells
 			?.map((trade) => trade.q)
 			.reduce((prev, curr) => prev + curr);
+		}
+		
 		if (short && wick && currentSecond >= 50 && sum >= 300) {
 			return true;
 		}
 		return false;
 	},
 };
-
-//createWebSocket(currentCandle, "bitmex");
-
-/* createWebSocket(currentCandle, "binance");
-createWebSocket(currentCandle, "coinbase");
-createWebSocket(currentCandle, "bybit");
-createWebSocket(currentCandle, "okx");
-createWebSocket(currentCandle, "huobi");
-createWebSocket(currentCandle, "upbit"); */
 
 createWebSocket(currentCandle, "futures");
 
