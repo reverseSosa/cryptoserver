@@ -12,6 +12,7 @@ export interface candle {
 		high: number;
 		low: number;
 	};
+	shortHistory: boolean;
 	signal: boolean;
 	diver: boolean;
 }
@@ -24,6 +25,7 @@ const currentCandle: candle = {
 		high: 0,
 		low: 0,
 	},
+	shortHistory: false,
 	get signal() {
 		const short = this.candleStatus.open > this.candleStatus.close;
 		const body = this.candleStatus.open - this.candleStatus.close;
@@ -43,7 +45,6 @@ const currentCandle: candle = {
 		return false;
 	},
 	get diver() {
-		let shortHistory = false;
 		let sum;
 		if (this.futures.sells.length > 0) {
 			sum = this.futures?.sells
@@ -51,7 +52,7 @@ const currentCandle: candle = {
 				.reduce((prev, curr) => prev + curr);
 		}
 		if (this.candleStatus.open > this.candleStatus.close) {
-			shortHistory = true;
+			this.shortHistory = true;
 		}
 		const candle = this.candleStatus.high - this.candleStatus.low;
 		const body = this.candleStatus.close - this.candleStatus.open;
@@ -66,7 +67,7 @@ const currentCandle: candle = {
 		} */
 		if (
 			sum >= 50 &&
-			shortHistory &&
+			this.shortHistory &&
 			wick &&
 			this.candleStatus.open < this.candleStatus.close
 		) {
