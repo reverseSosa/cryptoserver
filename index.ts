@@ -32,6 +32,7 @@ export interface candle {
 		low: number;
 	};
 	signal: boolean;
+	diver: boolean;
 }
 
 const currentCandle: candle = {
@@ -55,17 +56,43 @@ const currentCandle: candle = {
 		const bottomWick = this.candleStatus.open - this.candleStatus.low;
 		const currentSecond = new Date().getSeconds();
 		const wick = bottomWick / body >= 3;
-		let sum
+		let sum;
 		if (this.futures.sells.length > 0) {
 			sum = this.futures?.sells
-			?.map((trade) => trade.q)
-			.reduce((prev, curr) => prev + curr);
+				?.map((trade) => trade.q)
+				.reduce((prev, curr) => prev + curr);
 		}
-		
+
 		if (short && wick && currentSecond >= 50 && sum >= 300) {
 			return true;
 		}
 		return false;
+	},
+	get diver() {
+		let shortHistory = false;
+		let sum;
+		if (this.futures.sells.length > 0) {
+			sum = this.futures?.sells
+				?.map((trade) => trade.q)
+				.reduce((prev, curr) => prev + curr);
+		}
+		if (this.candleStatus.open > this.candleStatus.close) {
+			shortHistory = true;
+		}
+		const candle = this.candleStatus.high - this.candleStatus.low;
+		const body = this.candleStatus.close - this.candleStatus.open;
+		const wick = candle / body >= 3;
+		/* if (
+			this.candleStatus.open < this.candleStatus.close &&
+			shortHistory &&
+			wick &&
+			sum >= 700
+		) {
+			return true;
+		} */
+		if (sum >= 50) {
+			return true;
+		}
 	},
 };
 
