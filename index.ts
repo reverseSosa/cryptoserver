@@ -64,7 +64,12 @@ const currentCandle: candle = {
 		) {
 			return true;
 		} */
-		if (sum >= 50) {
+		if (
+			sum >= 50 &&
+			shortHistory &&
+			wick &&
+			this.candleStatus.open < this.candleStatus.close
+		) {
 			return true;
 		}
 		return false;
