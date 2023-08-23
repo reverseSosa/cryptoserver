@@ -207,7 +207,10 @@ export function createWebSocket(
 				const formattedBuys = formatter(message, "Buy", burse);
 				const date = new Date();
 
-				if (store.sells[0].date.getMinutes() !== date.getMinutes()) {
+				if (
+					store.sells.length > 0 &&
+					store.sells[0].date.getMinutes() !== date.getMinutes()
+				) {
 					candle.shortHistory = false;
 				}
 
