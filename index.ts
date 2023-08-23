@@ -46,6 +46,7 @@ const currentCandle: candle = {
 	},
 	get diver() {
 		let sum;
+
 		if (this.futures.sells.length > 0) {
 			sum = this.futures?.sells
 				?.map((trade) => trade.q)

@@ -206,6 +206,11 @@ export function createWebSocket(
 			try {
 				const formattedBuys = formatter(message, "Buy", burse);
 				const date = new Date();
+
+				if (store.sells[0].date.getMinutes() !== date.getMinutes()) {
+					candle.shortHistory = false;
+				}
+
 				if (formattedBuys) {
 					const freshBuys = store.buys?.filter(
 						(order) => order.date.getMinutes() === date.getMinutes(),
