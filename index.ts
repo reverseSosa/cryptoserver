@@ -67,6 +67,7 @@ const currentCandle: candle = {
 		if (sum >= 50) {
 			return true;
 		}
+		return false;
 	},
 };
 
