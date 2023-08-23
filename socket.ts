@@ -25,7 +25,7 @@ export function createWebSocket(
 		return JSON.parse(data.data.toString());
 	};
 
-	if (burse === "bybit") {
+	/* if (burse === "bybit") {
 		store = candle.bybit;
 		subMessage = {
 			req_id: "reversesosa",
@@ -117,7 +117,7 @@ export function createWebSocket(
 			}
 		};
 		pingMessage = "pong";
-	}
+	} */
 
 	if (burse === "futures") {
 		store = candle.futures;
