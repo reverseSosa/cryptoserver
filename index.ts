@@ -39,7 +39,7 @@ const currentCandle: candle = {
 				.reduce((prev, curr) => prev + curr);
 		}
 
-		if (short && wick && currentSecond >= 50 && sum >= 300) {
+		if (short && wick && currentSecond >= 50 && sum >= 500) {
 			return true;
 		}
 		return false;
@@ -55,21 +55,9 @@ const currentCandle: candle = {
 		if (this.candleStatus.open > this.candleStatus.close) {
 			this.shortHistory = true;
 		}
-		const candle = this.candleStatus.high - this.candleStatus.low;
-		const body = this.candleStatus.close - this.candleStatus.open;
-		const wick = candle / body >= 3;
-		/* if (
-			this.candleStatus.open < this.candleStatus.close &&
-			shortHistory &&
-			wick &&
-			sum >= 700
-		) {
-			return true;
-		} */
 		if (
-			sum >= 50 &&
+			sum >= 500 &&
 			this.shortHistory &&
-			wick &&
 			this.candleStatus.open < this.candleStatus.close
 		) {
 			return true;
