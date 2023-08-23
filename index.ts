@@ -5,25 +5,6 @@ import { createWebSocket } from "./socket";
 import { createCandleSocket } from "./candleSocket";
 
 export interface candle {
-	bybit: {
-		buys: Array<formattedTick>;
-		sells: Array<formattedTick>;
-	};
-	okx: {
-		buys: Array<formattedTick>;
-		sells: Array<formattedTick>;
-	};
-	upbit: {
-		buys: Array<formattedTick>;
-		sells: Array<formattedTick>;
-	};
-	huobi: {
-		buys: Array<formattedTick>;
-		sells: Array<formattedTick>;
-	};
-	bitmex: { buys: Array<formattedTick>; sells: Array<formattedTick> };
-	coinbase: { buys: Array<formattedTick>; sells: Array<formattedTick> };
-	binance: { buys: Array<formattedTick>; sells: Array<formattedTick> };
 	futures: { buys: Array<formattedTick>; sells: Array<formattedTick> };
 	candleStatus: {
 		open: number;
@@ -36,13 +17,6 @@ export interface candle {
 }
 
 const currentCandle: candle = {
-	bybit: { buys: [], sells: [] },
-	okx: { buys: [], sells: [] },
-	upbit: { buys: [], sells: [] },
-	huobi: { buys: [], sells: [] },
-	bitmex: { buys: [], sells: [] },
-	coinbase: { buys: [], sells: [] },
-	binance: { buys: [], sells: [] },
 	futures: { buys: [], sells: [] },
 	candleStatus: {
 		open: 0,
