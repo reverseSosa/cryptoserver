@@ -205,25 +205,21 @@ export function createWebSocket(
 		} else {
 			try {
 				const formattedBuys = formatter(message, "Buy", burse);
-
+				const date = new Date();
 				if (formattedBuys) {
 					const freshBuys = store.buys?.filter(
-						(order) =>
-							order.date.getMinutes() === formattedBuys.date.getMinutes(),
+						(order) => order.date.getMinutes() === date.getMinutes(),
 					);
 					store.buys = [...freshBuys, formattedBuys];
-					//console.log(formattedBuys);
 				}
 
 				const formattedSells = formatter(message, "Sell", burse);
 
 				if (formattedSells) {
 					const freshSells = store.sells?.filter(
-						(order) =>
-							order.date.getMinutes() === formattedSells.date.getMinutes(),
+						(order) => order.date.getMinutes() === date.getMinutes(),
 					);
 					store.sells = [...freshSells, formattedSells];
-					//console.log(formattedSells);
 				}
 			} catch (error) {
 				console.log(error);
