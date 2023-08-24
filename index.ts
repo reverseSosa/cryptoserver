@@ -56,7 +56,7 @@ const currentCandle: candle = {
 			this.shortHistory = true;
 		}
 		if (
-			sum >= 500 &&
+			sum >= 700 &&
 			this.shortHistory &&
 			this.candleStatus.open < this.candleStatus.close
 		) {
