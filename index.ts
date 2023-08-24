@@ -31,7 +31,7 @@ const currentCandle: candle = {
 		const body = this.candleStatus.open - this.candleStatus.close;
 		const bottomWick = this.candleStatus.open - this.candleStatus.low;
 		const currentSecond = new Date().getSeconds();
-		const wick = bottomWick / body >= 3;
+		const wick = bottomWick / body >= 4;
 		let sum;
 		if (this.futures.sells.length > 0) {
 			sum = this.futures?.sells
@@ -39,7 +39,7 @@ const currentCandle: candle = {
 				.reduce((prev, curr) => prev + curr);
 		}
 
-		if (short && wick && currentSecond >= 50 && sum >= 500) {
+		if (short && wick && currentSecond >= 50 && sum >= 700) {
 			return true;
 		}
 		return false;
